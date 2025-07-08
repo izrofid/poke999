@@ -41,18 +41,20 @@
 #include "constants/rgb.h"
 #include "constants/songs.h"
 
-#define TAG_SCROLL_ARROW   2100
+#define TAG_SCROLL_ARROW 2100
 #define TAG_ITEM_ICON_BASE 9110 // immune to time blending
 
 #define MAX_ITEMS_SHOWN 8
 #define SHOP_MENU_PALETTE_ID 12
 
-enum {
+enum
+{
     WIN_BUY_SELL_QUIT,
     WIN_BUY_QUIT,
 };
 
-enum {
+enum
+{
     WIN_MONEY,
     WIN_ITEM_LIST,
     WIN_ITEM_DESCRIPTION,
@@ -61,13 +63,15 @@ enum {
     WIN_MESSAGE,
 };
 
-enum {
+enum
+{
     COLORID_NORMAL,      // Item descriptions, quantity in bag, and quantity/price
     COLORID_ITEM_LIST,   // The text in the item list, and the cursor normally
     COLORID_GRAY_CURSOR, // When the cursor has selected an item to purchase
 };
 
-enum {
+enum
+{
     MART_TYPE_NORMAL,
     MART_TYPE_DECOR,
     MART_TYPE_DECOR2,
@@ -159,185 +163,171 @@ static void BuyMenuPrintItemDescriptionAndShowItemIcon(s32 item, bool8 onInit, s
 static void BuyMenuPrintPriceInList(u8 windowId, u32 itemId, u8 y);
 
 static const struct YesNoFuncTable sShopPurchaseYesNoFuncs =
-{
-    BuyMenuTryMakePurchase,
-    BuyMenuReturnToItemList
-};
+    {
+        BuyMenuTryMakePurchase,
+        BuyMenuReturnToItemList};
 
 static const struct MenuAction sShopMenuActions_BuySellQuit[] =
-{
-    { gText_ShopBuy, {.void_u8=Task_HandleShopMenuBuy} },
-    { gText_ShopSell, {.void_u8=Task_HandleShopMenuSell} },
-    { gText_ShopQuit, {.void_u8=Task_HandleShopMenuQuit} }
-};
+    {
+        {gText_ShopBuy, {.void_u8 = Task_HandleShopMenuBuy}},
+        {gText_ShopSell, {.void_u8 = Task_HandleShopMenuSell}},
+        {gText_ShopQuit, {.void_u8 = Task_HandleShopMenuQuit}}};
 
 static const struct MenuAction sShopMenuActions_BuyQuit[] =
-{
-    { gText_ShopBuy, {.void_u8=Task_HandleShopMenuBuy} },
-    { gText_ShopQuit, {.void_u8=Task_HandleShopMenuQuit} }
-};
+    {
+        {gText_ShopBuy, {.void_u8 = Task_HandleShopMenuBuy}},
+        {gText_ShopQuit, {.void_u8 = Task_HandleShopMenuQuit}}};
 
 static const struct WindowTemplate sShopMenuWindowTemplates[] =
-{
-    [WIN_BUY_SELL_QUIT] = {
-        .bg = 0,
-        .tilemapLeft = 2,
-        .tilemapTop = 1,
-        .width = 9,
-        .height = 6,
-        .paletteNum = 15,
-        .baseBlock = 0x0008,
-    },
-    // Separate shop menu window for decorations, which can't be sold
-    [WIN_BUY_QUIT] = {
-        .bg = 0,
-        .tilemapLeft = 2,
-        .tilemapTop = 1,
-        .width = 9,
-        .height = 4,
-        .paletteNum = 15,
-        .baseBlock = 0x0008,
-    }
-};
+    {
+        [WIN_BUY_SELL_QUIT] = {
+            .bg = 0,
+            .tilemapLeft = 2,
+            .tilemapTop = 1,
+            .width = 9,
+            .height = 6,
+            .paletteNum = 15,
+            .baseBlock = 0x0008,
+        },
+        // Separate shop menu window for decorations, which can't be sold
+        [WIN_BUY_QUIT] = {
+            .bg = 0,
+            .tilemapLeft = 2,
+            .tilemapTop = 1,
+            .width = 9,
+            .height = 4,
+            .paletteNum = 15,
+            .baseBlock = 0x0008,
+        }};
 
 static const struct ListMenuTemplate sShopBuyMenuListTemplate =
-{
-    .items = NULL,
-    .moveCursorFunc = BuyMenuPrintItemDescriptionAndShowItemIcon,
-    .itemPrintFunc = BuyMenuPrintPriceInList,
-    .totalItems = 0,
-    .maxShowed = 0,
-    .windowId = WIN_ITEM_LIST,
-    .header_X = 0,
-    .item_X = 8,
-    .cursor_X = 0,
-    .upText_Y = 1,
-    .cursorPal = 2,
-    .fillValue = 0,
-    .cursorShadowPal = 3,
-    .lettersSpacing = 0,
-    .itemVerticalPadding = 0,
-    .scrollMultiple = LIST_NO_MULTIPLE_SCROLL,
-    .fontId = FONT_NARROW,
-    .cursorKind = CURSOR_BLACK_ARROW,
-    .textNarrowWidth = 84,
+    {
+        .items = NULL,
+        .moveCursorFunc = BuyMenuPrintItemDescriptionAndShowItemIcon,
+        .itemPrintFunc = BuyMenuPrintPriceInList,
+        .totalItems = 0,
+        .maxShowed = 0,
+        .windowId = WIN_ITEM_LIST,
+        .header_X = 0,
+        .item_X = 8,
+        .cursor_X = 0,
+        .upText_Y = 1,
+        .cursorPal = 2,
+        .fillValue = 0,
+        .cursorShadowPal = 3,
+        .lettersSpacing = 0,
+        .itemVerticalPadding = 0,
+        .scrollMultiple = LIST_NO_MULTIPLE_SCROLL,
+        .fontId = FONT_NARROW,
+        .cursorKind = CURSOR_BLACK_ARROW,
+        .textNarrowWidth = 84,
 };
 
 static const struct BgTemplate sShopBuyMenuBgTemplates[] =
-{
     {
-        .bg = 0,
-        .charBaseIndex = 2,
-        .mapBaseIndex = 31,
-        .screenSize = 0,
-        .paletteMode = 0,
-        .priority = 0,
-        .baseTile = 0
-    },
-    {
-        .bg = 1,
-        .charBaseIndex = 0,
-        .mapBaseIndex = 30,
-        .screenSize = 0,
-        .paletteMode = 0,
-        .priority = 1,
-        .baseTile = 0
-    },
-    {
-        .bg = 2,
-        .charBaseIndex = 0,
-        .mapBaseIndex = 29,
-        .screenSize = 0,
-        .paletteMode = 0,
-        .priority = 2,
-        .baseTile = 0
-    },
-    {
-        .bg = 3,
-        .charBaseIndex = 0,
-        .mapBaseIndex = 28,
-        .screenSize = 0,
-        .paletteMode = 0,
-        .priority = 3,
-        .baseTile = 0
-    }
-};
+        {.bg = 0,
+         .charBaseIndex = 2,
+         .mapBaseIndex = 31,
+         .screenSize = 0,
+         .paletteMode = 0,
+         .priority = 0,
+         .baseTile = 0},
+        {.bg = 1,
+         .charBaseIndex = 0,
+         .mapBaseIndex = 30,
+         .screenSize = 0,
+         .paletteMode = 0,
+         .priority = 1,
+         .baseTile = 0},
+        {.bg = 2,
+         .charBaseIndex = 0,
+         .mapBaseIndex = 29,
+         .screenSize = 0,
+         .paletteMode = 0,
+         .priority = 2,
+         .baseTile = 0},
+        {.bg = 3,
+         .charBaseIndex = 0,
+         .mapBaseIndex = 28,
+         .screenSize = 0,
+         .paletteMode = 0,
+         .priority = 3,
+         .baseTile = 0}};
 
 static const struct WindowTemplate sShopBuyMenuWindowTemplates[] =
-{
-    [WIN_MONEY] = {
-        .bg = 0,
-        .tilemapLeft = 1,
-        .tilemapTop = 1,
-        .width = 10,
-        .height = 2,
-        .paletteNum = 15,
-        .baseBlock = 0x001E,
-    },
-    [WIN_ITEM_LIST] = {
-        .bg = 0,
-        .tilemapLeft = 14,
-        .tilemapTop = 2,
-        .width = 15,
-        .height = 16,
-        .paletteNum = 15,
-        .baseBlock = 0x0032,
-    },
-    [WIN_ITEM_DESCRIPTION] = {
-        .bg = 0,
-        .tilemapLeft = 0,
-        .tilemapTop = 13,
-        .width = 14,
-        .height = 6,
-        .paletteNum = 15,
-        .baseBlock = 0x0122,
-    },
-    [WIN_QUANTITY_IN_BAG] = {
-        .bg = 0,
-        .tilemapLeft = 1,
-        .tilemapTop = 11,
-        .width = 12,
-        .height = 2,
-        .paletteNum = 15,
-        .baseBlock = 0x0176,
-    },
-    [WIN_QUANTITY_PRICE] = {
-        .bg = 0,
-        .tilemapLeft = 18,
-        .tilemapTop = 11,
-        .width = 10,
-        .height = 2,
-        .paletteNum = 15,
-        .baseBlock = 0x018E,
-    },
-    [WIN_MESSAGE] = {
-        .bg = 0,
-        .tilemapLeft = 2,
-        .tilemapTop = 15,
-        .width = 27,
-        .height = 4,
-        .paletteNum = 15,
-        .baseBlock = 0x01A2,
-    },
-    DUMMY_WIN_TEMPLATE
-};
+    {
+        [WIN_MONEY] = {
+            .bg = 0,
+            .tilemapLeft = 1,
+            .tilemapTop = 1,
+            .width = 10,
+            .height = 2,
+            .paletteNum = 15,
+            .baseBlock = 0x001E,
+        },
+        [WIN_ITEM_LIST] = {
+            .bg = 0,
+            .tilemapLeft = 14,
+            .tilemapTop = 2,
+            .width = 15,
+            .height = 16,
+            .paletteNum = 15,
+            .baseBlock = 0x0032,
+        },
+        [WIN_ITEM_DESCRIPTION] = {
+            .bg = 0,
+            .tilemapLeft = 0,
+            .tilemapTop = 13,
+            .width = 14,
+            .height = 6,
+            .paletteNum = 15,
+            .baseBlock = 0x0122,
+        },
+        [WIN_QUANTITY_IN_BAG] = {
+            .bg = 0,
+            .tilemapLeft = 1,
+            .tilemapTop = 11,
+            .width = 12,
+            .height = 2,
+            .paletteNum = 15,
+            .baseBlock = 0x0176,
+        },
+        [WIN_QUANTITY_PRICE] = {
+            .bg = 0,
+            .tilemapLeft = 18,
+            .tilemapTop = 11,
+            .width = 10,
+            .height = 2,
+            .paletteNum = 15,
+            .baseBlock = 0x018E,
+        },
+        [WIN_MESSAGE] = {
+            .bg = 0,
+            .tilemapLeft = 2,
+            .tilemapTop = 15,
+            .width = 27,
+            .height = 4,
+            .paletteNum = 15,
+            .baseBlock = 0x01A2,
+        },
+        DUMMY_WIN_TEMPLATE};
 
 static const struct WindowTemplate sShopBuyMenuYesNoWindowTemplates =
-{
-    .bg = 0,
-    .tilemapLeft = 21,
-    .tilemapTop = 9,
-    .width = 5,
-    .height = 4,
-    .paletteNum = 15,
-    .baseBlock = 0x020E,
+    {
+        .bg = 0,
+        .tilemapLeft = 21,
+        .tilemapTop = 9,
+        .width = 5,
+        .height = 4,
+        .paletteNum = 15,
+        .baseBlock = 0x020E,
 };
 
 static const u8 sShopBuyMenuTextColors[][3] =
-{
-    [COLORID_NORMAL]      = {1, 2, 3},
-    [COLORID_ITEM_LIST]   = {0, 2, 3},
-    [COLORID_GRAY_CURSOR] = {0, 3, 2},
+    {
+        [COLORID_NORMAL] = {1, 2, 3},
+        [COLORID_ITEM_LIST] = {0, 2, 3},
+        [COLORID_GRAY_CURSOR] = {0, 3, 2},
 };
 
 static u8 CreateShopMenu(u8 martType)
@@ -410,8 +400,8 @@ static void Task_ShopMenu(u8 taskId)
     }
 }
 
-#define tItemCount  data[1]
-#define tItemId     data[5]
+#define tItemCount data[1]
+#define tItemId data[5]
 #define tListTaskId data[7]
 #define tCallbackHi data[8]
 #define tCallbackLo data[9]
@@ -810,7 +800,7 @@ static void BuyMenuDrawMapBg(void)
         {
             metatile = MapGridGetMetatileIdAt(x + i, y + j);
             if (BuyMenuCheckForOverlapWithMenuBg(i, j) == TRUE)
-                metatileLayerType = MapGridGetMetatileLayerTypeAt(x + i, y + j);
+                metatileLayerType = METATILE_LAYER_TYPE_NORMAL;
             else
                 metatileLayerType = METATILE_LAYER_TYPE_COVERED;
 
@@ -822,33 +812,53 @@ static void BuyMenuDrawMapBg(void)
     }
 }
 
+static bool8 IsMetatileLayerEmpty(const u16 *src)
+{
+    u32 i = 0;
+    for (i = 0; i < 4; ++i)
+    {
+        if ((src[i] & 0x3FF) != 0)
+            return FALSE;
+    }
+    return TRUE;
+}
+
 static void BuyMenuDrawMapMetatile(s16 x, s16 y, const u16 *src, u8 metatileLayerType)
 {
     u16 offset1 = x * 2;
     u16 offset2 = y * 64;
 
-    switch (metatileLayerType)
+    if (metatileLayerType == METATILE_LAYER_TYPE_NORMAL)
     {
-    case METATILE_LAYER_TYPE_NORMAL:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src);
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], offset1, offset2, src + 4);
-        break;
-    case METATILE_LAYER_TYPE_COVERED:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src);
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src + 0);
         BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src + 4);
-        break;
-    case METATILE_LAYER_TYPE_SPLIT:
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src);
-        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], offset1, offset2, src + 4);
-        break;
+        BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[1], offset1, offset2, src + 8);
+    }
+    else
+    {
+        if (IsMetatileLayerEmpty(src))
+        {
+            BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src + 4);
+            BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src + 8);
+        }
+        else if (IsMetatileLayerEmpty(src + 4))
+        {
+            BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src);
+            BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src + 8);
+        }
+        else if (IsMetatileLayerEmpty(src + 8))
+        {
+            BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[2], offset1, offset2, src);
+            BuyMenuDrawMapMetatileLayer(sShopData->tilemapBuffers[3], offset1, offset2, src + 4);
+        }
     }
 }
 
 static void BuyMenuDrawMapMetatileLayer(u16 *dest, s16 offset1, s16 offset2, const u16 *src)
 {
     // This function draws a whole 2x2 metatile.
-    dest[offset1 + offset2] = src[0]; // top left
-    dest[offset1 + offset2 + 1] = src[1]; // top right
+    dest[offset1 + offset2] = src[0];      // top left
+    dest[offset1 + offset2 + 1] = src[1];  // top right
     dest[offset1 + offset2 + 32] = src[2]; // bottom left
     dest[offset1 + offset2 + 33] = src[3]; // bottom right
 }
@@ -937,7 +947,7 @@ static void BuyMenuDrawObjectEvents(void)
     }
 
     gWeatherPtr->palProcessingState = weatherTemp; // restore weather state
-    CpuFastCopy(gPlttBufferFaded + 16*16, gPlttBufferUnfaded + 16*16, PLTT_BUFFER_SIZE);
+    CpuFastCopy(gPlttBufferFaded + 16 * 16, gPlttBufferUnfaded + 16 * 16, PLTT_BUFFER_SIZE);
 }
 
 static bool8 BuyMenuCheckIfObjectEventOverlapsMenuBg(s16 *object)
@@ -1178,9 +1188,7 @@ static void Task_ReturnToItemListAfterItemPurchase(u8 taskId)
     if (JOY_NEW(A_BUTTON | B_BUTTON))
     {
         u16 premierBallsToAdd = tItemCount / 10;
-        if (premierBallsToAdd >= 1
-         && ((I_PREMIER_BALL_BONUS <= GEN_7 && tItemId == ITEM_POKE_BALL)
-          || (I_PREMIER_BALL_BONUS >= GEN_8 && (GetItemPocket(tItemId) == POCKET_POKE_BALLS))))
+        if (premierBallsToAdd >= 1 && ((I_PREMIER_BALL_BONUS <= GEN_7 && tItemId == ITEM_POKE_BALL) || (I_PREMIER_BALL_BONUS >= GEN_8 && (GetItemPocket(tItemId) == POCKET_POKE_BALLS))))
         {
             u32 spaceAvailable = GetFreeSpaceForItemInBag(ITEM_PREMIER_BALL);
             if (spaceAvailable < premierBallsToAdd)
