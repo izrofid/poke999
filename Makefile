@@ -172,6 +172,7 @@ RAMSCRGEN    := $(TOOLS_DIR)/ramscrgen/ramscrgen$(EXE)
 FIX          := $(TOOLS_DIR)/gbafix/gbafix$(EXE)
 MAPJSON      := $(TOOLS_DIR)/mapjson/mapjson$(EXE)
 JSONPROC     := $(TOOLS_DIR)/jsonproc/jsonproc$(EXE)
+SCRIPT       := $(TOOLS_DIR)/poryscript/poryscript$(EXE)
 TRAINERPROC  := $(TOOLS_DIR)/trainerproc/trainerproc$(EXE)
 PATCHELF     := $(TOOLS_DIR)/patchelf/patchelf$(EXE)
 ifeq ($(shell uname),Darwin)
@@ -355,6 +356,9 @@ include trainer_rules.mk
 
 # NOTE: Tools must have been built prior (FIXME)
 # so you can't really call this rule directly
+
+AUTO_GEN_TARGETS += $(patsubst %.pory,%.inc,$(shell find data/ -type f -name '*.pory'))
+
 generated: $(AUTO_GEN_TARGETS)
 	@: # Silence the "Nothing to be done for `generated'" message, which some people were confusing for an error.
 
@@ -363,6 +367,7 @@ generated: $(AUTO_GEN_TARGETS)
 %.png: ;
 %.pal: ;
 %.aif: ;
+%.pory: ;
 
 %.1bpp:     %.png  ; $(GFX) $< $@
 %.4bpp:     %.png  ; $(GFX) $< $@
@@ -374,6 +379,8 @@ generated: $(AUTO_GEN_TARGETS)
 %.fastSmol: %      ; $(SMOL) -w $< $@ false false false
 %.smol:     %      ; $(SMOL) -w $< $@
 %.rl:       %      ; $(GFX) $< $@
+data/%.inc: data/%.pory; $(SCRIPT) -i $< -o $@ -fc tools/poryscript/font_config.json -cc tools/poryscript/command_config.json
+
 
 clean-generated:
 	@rm -f $(AUTO_GEN_TARGETS)
